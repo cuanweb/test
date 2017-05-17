@@ -1,0 +1,189 @@
+> 23 maret 2017 (yonathan)
+  * script utk module cetak label barang
+    INSERT INTO usersubmodules VALUES("3", "2013", "Cetak Label Barang", "Yes", "Yes", "Yes", "Yes", "Yes", "No", "No")
+
+> 2 TODO : perbaikan select nama supplier harus mencontoh nama customer
+  yang bisa ditaruh di parent/lib dan diatur pakai daftar define
+
+> 7 Maret 2017 (Nita)
+  * script untuk menambahkan modul "Laporan Laba Kotor" :
+    insert into usersubmodules values
+    ('3', '5606', 'Laporan Laba Kotor', 'Yes', 'Yes', 'No', 'No', 'No', 'Yes', 'Yes')
+
+> 25 Jan 2017 (Katerina)
+  * menghapus constrain FK_tbelireturh_IDBeliH pada tabel tbelireturh, dan IDBeliH boleh NULL
+    ALTER TABLE `primaatk`.`tbelireturh` CHANGE `IDBeliH` `IDBeliH` INT(11) NULL, DROP FOREIGN KEY `FK_tbelireturh_IDBeliH`;
+
+> 24 Jan 2017 (Katerina)
+  * menghapus constrain FK_tjualreturh_IDCustomer pada tabel tjualreturh
+    ALTER TABLE `primaatk`.`tjualreturh` DROP FOREIGN KEY `FK_tjualreturh_IDCustomer`;
+    
+> 23 Jan 2017 (Katerina)
+  * menghapus constrain FK_tjualreturh_IDJualH pada tabel tjualreturh
+    ALTER TABLE `primaatk`.`tjualreturh` DROP FOREIGN KEY `FK_tjualreturh_IDJualH`;
+
+> 5 Jan 2016 (Hary) :
+  * (+) tabel tlistregister :
+        CREATE TABLE `tlistregister` (
+          `IDRegister` INT(11) NOT NULL AUTO_INCREMENT,
+          `ComputerName` VARCHAR(100) NOT NULL,
+          `KodeAktifasi` VARCHAR(100) NOT NULL,
+          `KodeRegistrasi` VARCHAR(100) NOT NULL,
+          `InsertUser` VARCHAR(16) DEFAULT NULL,
+          `InsertTime` DATETIME DEFAULT NULL,
+          `InsertProgram` VARCHAR(30) DEFAULT NULL,
+          PRIMARY KEY (`IDRegister`),
+          UNIQUE KEY `KodeAktifasi_UNIQUE` (`KodeAktifasi`)
+        ) ENGINE=INNODB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1
+
+> 26 Nov 2016 (Hary)
+  * (+) field "DiscHarga" pada tabel tbelireturd
+  ALTER TABLE `tbelireturd` ADD COLUMN `DiscHarga` DOUBLE NULL AFTER `Harga`;
+  * (+) field "DiscHarga" pada tabel tjualreturd
+  ALTER TABLE `tjualreturd` ADD COLUMN `DiscHarga` DOUBLE NULL AFTER `Harga`;
+
+> 25 Nov 2016 (Katerina)
+  * penambahan field "Tanggal" pada tabel tjualbayarkash
+    ALTER TABLE `tjualbayarkash` ADD COLUMN `Tanggal` DATE NULL AFTER `IDKasir`;
+
+> 24 Nov 2016 (Hary)
+  Membuat pembayaran tunai bisa pilih tanggal
+  tabel tjualbayarkash kayanya harus (+) field TanggalBayar
+  
+> 24 Nov 2016 (Hary)
+  penambahan metode bayar "Transfer" di tjualbayarkasd
+  ALTER TABLE `tjualbayarkasd` CHANGE `Metode` `Metode` ENUM('Tunai','Kartu Kredit','Debit','Voucher','Retur','Transfer','Lain-lain') CHARSET latin1 COLLATE latin1_swedish_ci DEFAULT 'Tunai' NOT NULL;
+   
+> 17 Nov 2016 (Hary)
+  * experiment di uTransJualSalesPrima
+    field "IsUploaded" dibikin sebagai field runTime dan optional
+    program akan melakukan pengecekan db apakah tabel tjualh punya field "IsUploaded"
+    bila ada, maka melakukan penyimpanan ke field tsb.
+    Bila tidak ada, maka tidak melakukan penyimpanan ke field ybs.
+    Supaya bisa runTime untuk TClientDataSet, ada 2 cara :
+    1. Tidak ada field yang predefined sama sekali
+    2. Bila ada field yang predefined, maka
+       tjualh.FieldByName('IsUploaded').AsBoolean := False; << akan error : field IsUploaded doesn't exist
+       karena sudah ada field yang predefined lainnya, maka clientDataSet akan
+       mengecek di daftar predefined fieldnya, ada ga field "IsUploaded"
+       Supaya ga error, maka field "IsUploaded" ini juga harus dibuat runTime
+       di formCreate dgn cara :
+       var
+         fieldIsUploaded: TField;
+       begin
+          if LibQSoft.IsFieldExistInTable(dm.con, dm.query, 'IsUploaded', 'tjualh') then
+          begin
+            tJualH.Close;
+            fieldIsUploaded := TBooleanField.Create(tJualH);
+            fieldIsUploaded.Name := '';
+            fieldIsUploaded.FieldName := 'IsUploaded';
+            fieldIsUploaded.DataSet := tJualH;
+            tJualH.Open;
+          end;
+       end;
+
+ALTER TABLE `tjualbayarkasd` 
+	ADD COLUMN `ServerId` int(11)   NULL after `Status` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjuald` 
+	ADD COLUMN `ServerId` int(11)   NULL after `IDJualDSorted` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjualdod` 
+	ADD COLUMN `ServerId` int(11)   NULL after `Catatan` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjualdoh` 
+	ADD COLUMN `ServerId` int(11)   NULL after `UpdateTime` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjualh` 
+	ADD COLUMN `ServerId` int(11)   NULL after `EoS` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjualreturd` 
+	ADD COLUMN `ServerId` int(11)   NULL after `BatchNo` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`;
+
+ALTER TABLE `tjualreturh` 
+	ADD COLUMN `ServerId` int(11)   NULL after `EoS` , 
+	ADD COLUMN `IsUploaded` tinyint(1)   NOT NULL DEFAULT 0 after `ServerId`; 
+
+> 25 Okt 2016 (Hary)
+  * Penambahan field "IDJualDSorted" pada tabel tjuald
+  fungsinya sebagai custom sorting, di prima atk digunakan untuk mengurutkan
+  barang yang didelete dengan barang parent deleted nya
+  contoh : x A 10
+           x A -10
+  ALTER TABLE `tjuald` ADD COLUMN `IDJualDSorted` INT NULL AFTER `Aktif`;
+> 24 Okt 2016 (Hary)
+  * penambahan field "Aktif" pada tabel tjuald
+  ALTER TABLE `tjuald` ADD COLUMN `Aktif` ENUM('Ya','Tidak') DEFAULT 'Ya' NULL AFTER `SJJumlah`;
+> 21 Okt 2016 (Hary)
+  * penambahan field "DiscPersen" dan "Disc" (discHarga) di tabel mitem
+  ALTER TABLE `mitem` ADD COLUMN `DiscPersen` DOUBLE NULL AFTER `UpdateProgram`, ADD COLUMN `Disc` DOUBLE NULL AFTER `DiscPersen`;
+
+> 18 Okt 2016 (Hary)
+  * penambahan field "EoD" dan "EoS"  di tabel tjualreturh
+    ALTER TABLE `tjualreturh` ADD COLUMN `EoD` INT NULL AFTER `UpdateTime`, ADD COLUMN `EoS` INT NULL AFTER `EoD`;
+
+  * penambahan tabel 'kasirshift' :
+  CREATE TABLE `kasirshift` (
+    `Kasir` varchar(50) NOT NULL COMMENT 'POS 1, POS 2, dst',
+    `Shift` int(11) NOT NULL COMMENT '1,2,3,dst',
+    `UpdateUser` varchar(16) DEFAULT NULL,
+    `UpdateTime` datetime DEFAULT NULL,
+    PRIMARY KEY (`Kasir`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+  * Penambahan field Terminal di tjualbayarkash = TerminalClose di tjualh
+  ALTER TABLE `tjualbayarkash` ADD COLUMN `Terminal` VARCHAR(50) NULL COMMENT '= terminalclose di tjualh' AFTER `UpdateIP`; 
+  * Penambahan field TerminalOpen, TerminalClose, EoD, EoS di tjualh
+  ALTER TABLE `tjualh` ADD COLUMN `TerminalOpen` VARCHAR(50) NULL AFTER `UpdateIP`, ADD COLUMN `TerminalClose` VARCHAR(50) NULL AFTER `TerminalOpen`, ADD COLUMN `EoD` INT NULL AFTER `TerminalClose`, ADD COLUMN `EoS` INT NULL AFTER `EoD`;
+   
+> 13 Okt 2016 (Hary)
+  * cara membuat fast report untuk limit jumlah baris  / record yang akan
+    ditampilkan di band detail :
+    ref : https://www.fast-report.com/public_download/html/UserMan/index.html?using_the_engine_object.htm
+
+    procedure MasterData1OnAfterPrint(Sender: TfrxComponent);
+    begin
+      // code untuk membatasi jumlah record yang ditampilkan per halaman 10 record :
+      if <Line> = 10 then
+        Engine.NewPage;
+
+      // code untuk membatasi jumlah baris yang ditampilkan tidak overlap dengan
+      // Summary (cara ini lebih fleksibel daripada cara limit record diatas
+      // karena dia melihat freespace sblm nulis summary
+      // kalau ga cukup, maka force new page
+      // cara ini bisa handle kalau 1 record bisa makan > 1 baris
+      if Engine.FreeSpace < ReportSummary1.Height - 10 then
+        Engine.NewPage;
+    end;
+    
+> 12 Okt 2016 (Hary)
+  * Penambahan filed "DiscHarga" di tabel tbelid
+    ALTER TABLE `tbelid` ADD COLUMN `DiscHarga` DOUBLE NULL AFTER `DiscPersen3`;
+> 11 Okt 2016 (Hary)
+  * Penambahan field PostUser dan PostTime di tabel tjurnalitem :
+    ALTER TABLE `tjurnalitem` ADD COLUMN `PostUser` VARCHAR(16) NULL AFTER `Aktif`, ADD COLUMN `PostTime` DATETIME NULL AFTER `PostUser`;
+
+> 8 Sept 2016 (Hary)
+  * Riset cara menampilkan form di monitor ke-2 :
+      Ref : http://docwiki.embarcadero.com/RADStudio/Seattle/en/Handling_the_Screen
+      if (frmGrid = nil) then
+        frmGrid := TfrmGrid.Create(Application);
+      frmGrid.DefaultMonitor := dmDesktop; // dmDesktop : No attempt is made to position the form on a specific monitor. //http://docwiki.embarcadero.com/Libraries/XE3/en/Vcl.Forms.TForm.DefaultMonitor
+      frmGrid.Width := 600;
+      frmGrid.Left := Screen.Monitors[1].Left + (Screen.Monitors[1].Width - frmGrid.Width) div 2;
+      frmGrid.Show;
+
+> 5 Sept 2016 (Hary)
+  * Penambahan field NamaItem di tjuald, supaya pada waktu penjualan nama item
+    bisa diedit, semisal mau edit "Servis Komputer", bisa diedit jadi
+    "Servis Komputer : LCD", dll
+    -> ALTER TABLE `vihara_sksp`.`tjuald` ADD COLUMN `NamaItem` VARCHAR(50) NULL AFTER `IDItemHargaD`
+    
+> Tabel MataUang harus ada isinya :
+  * INSERT INTO `mmatauang` (`Kode`, `Nama`, `Simbol`, `Aktif`, `InsertUser`) VALUES ('IDR', 'Indonesia', 'Rp.', 'Ya', 'inject');
